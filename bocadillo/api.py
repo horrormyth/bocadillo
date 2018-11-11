@@ -18,6 +18,7 @@ from .checks import check_route
 from .constants import ALL_HTTP_METHODS
 from .error_handlers import handle_http_error
 from .exceptions import HTTPError
+from .ext import orator
 from .middleware import CommonMiddleware, RoutingMiddleware
 from .redirection import Redirection
 from .request import Request
@@ -94,6 +95,9 @@ class API:
 
         self._extra_apps: Dict[str, Any] = {}
 
+        self._db: Optional[orator.DatabaseManager] = None
+        self._db_config: Optional[dict] = None
+
         self.client = self._build_client()
 
         if static_dir is not None:
@@ -123,6 +127,85 @@ class API:
 
     def _build_client(self) -> TestClient:
         return TestClient(self)
+
+    def setup_orator(
+            self,
+            alias: str = orator.DEFAULT_ALIAS,
+            driver: str = orator.DEFAULT_DRIVER,
+            name: str = orator.DEFAULT_DB_NAME,
+            user: str = None,
+            password: str = None,
+            host: str = None,
+            port: str = None,
+            databases: dict = None,
+            module: str = None,
+    ):
+        """Configure an Orator database.
+
+        Without any parameters, this will configure a SQLite database.
+
+        Parameters
+        ----------
+        alias : str, optional
+            Alias for the database configuration.
+            Defaults to 'default'.
+        driver : str, optional
+            Orator database driver used.
+            One of: 'sqlite', 'pgsql', 'mysql'.
+            Defaults to $DB_DRIVER or 'sqlite'.
+        name : str, optional
+            The name of the database.
+            Defaults to $DB_NAME or 'sqlite.db'.
+        user : str, optional
+            The name of the user on the database.
+            Defaults to $DB_USER or None.
+        password : str, optional
+            The password used to access the database.
+            Defaults to $DB_PASSWORD or None.
+        host : str, optional
+            The host where the database is accessible.
+            Defaults to $DB_HOST or None.
+        port : str, optional
+            The port on which the database is accessible.
+            Defaults to $DB_PORT or None.
+        module : str, optional
+            The module path to an Orator configuration Python module.
+        databases : dict, optional
+            An explicit configuration dictionary for advanced usages
+            (e.g. multiple databases).
+
+        See Also
+        --------
+        Orator ORM configuration :
+            https://orator-orm.com/docs/0.9/basic_usage.html#configuration
+        """
+        if module is not None:
+            db, config = orator.configure_from_module(module)
+        elif databases is not None:
+            db, config = orator.configure(databases=databases)
+        else:
+            db, config = orator.configure_one(
+                alias=alias,
+                driver=driver,
+                database=name,
+                user=user,
+                password=password,
+                host=host,
+                port=port,
+            )
+
+        self._db = db
+        self._db_config = config
+
+    @property
+    def db(self):
+        """Return the database manager or None."""
+        return self._db
+
+    @property
+    def db_config(self) -> dict:
+        """Return the database configuration, or None."""
+        return self._db_config
 
     def mount(self, prefix: str, app: Union[ASGIApp, WSGIApp]):
         """Mount another WSGI or ASGI app at the given prefix."""

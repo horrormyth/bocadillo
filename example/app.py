@@ -3,12 +3,7 @@ from bocadillo.exceptions import HTTPError
 from bocadillo.response import Response
 
 api = bocadillo.API(static_root='assets')
-
-
-# @api.error_handler(HTTPError)
-def handle(req, resp: Response, exception: HTTPError):
-    resp.status_code = exception.status_code
-    resp.text = f'GOTCHA! Overridden {exception.status_code}'
+api.setup_orator(module='orator')
 
 
 @api.route('/greet/{person}', methods=['post'])

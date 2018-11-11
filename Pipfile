@@ -16,6 +16,7 @@ requests = "*"
 pytest = "*"
 bumpversion = "*"
 pytest-asyncio = "*"
+orator = "*"
 
 [requires]
 python_version = "3.7"
