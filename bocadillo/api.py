@@ -130,16 +130,13 @@ class API:
             password: Optional[str] = None,
             host: Optional[str] = None,
             port: Optional[str] = None,
-            module: Optional[str] = 'settings',
+            module: Optional[str] = None,
             databases: Optional[dict] = None,
     ):
         """Configure an Orator database.
 
-        Without any parameters, this will:
-
-        - Try to import database settings from `settings.py`.
-        - If not available, use the default parameters and configure
-        a SQLite database.
+        When called without any parameters, this will configure a
+        SQLite database called 'sqlite.db'.
 
         Parameters
         ----------
@@ -167,29 +164,23 @@ class API:
             Defaults to $DB_PORT or None.
         module : str, optional
             The module path to an Orator configuration Python module.
-            Defaults to 'settings'.
+            Defaults to None.
         databases : dict, optional
             An explicit configuration dictionary for advanced usages
             (e.g. multiple databases).
+            Defaults to None.
 
         See Also
         --------
         Orator ORM configuration :
             https://orator-orm.com/docs/0.9/basic_usage.html#configuration
         """
-        db = None
-        config = None
-
         if databases is not None:
-            db, config = orator.configure(databases=databases)
+            db = orator.configure(databases=databases)
         elif module is not None:
-            try:
-                db, config = orator.configure_from_module(module)
-            except ImportError:
-                pass
-
-        if db is None or config is None:
-            db, config = orator.configure_one(
+            db = orator.configure_from_module(module)
+        else:
+            db = orator.configure_one(
                 alias=alias,
                 driver=driver,
                 database=database,
@@ -200,17 +191,11 @@ class API:
             )
 
         self._db = db
-        self._db_config = config
 
     @property
     def db(self):
         """Return the database manager or None."""
         return self._db
-
-    @property
-    def db_config(self) -> dict:
-        """Return the database configuration, or None."""
-        return self._db_config
 
     def mount(self, prefix: str, app: Union[ASGIApp, WSGIApp]):
         """Mount another WSGI or ASGI app at the given prefix."""

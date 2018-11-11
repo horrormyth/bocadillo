@@ -3,7 +3,7 @@ from bocadillo.exceptions import HTTPError
 from bocadillo.response import Response
 
 api = bocadillo.API(static_root='assets')
-api.setup_db()
+api.setup_db(module='conf')
 
 
 @api.route('/greet/{person}', methods=['post'])

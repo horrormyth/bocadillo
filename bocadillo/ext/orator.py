@@ -25,20 +25,20 @@ DEFAULT_ALIAS = 'default'
 # See also:
 # https://orator-orm.com/docs/0.9/orm.html#basic-usage
 
-def configure(databases: dict = None):
+def configure(databases: dict = None) -> DatabaseManager:
     if databases is None:
         databases = {}
     db = DatabaseManager(databases)
     Model.set_connection_resolver(db)
-    return db, databases
+    return db
 
 
-def configure_from_module(module: str):
+def configure_from_module(module: str) -> DatabaseManager:
     databases: dict = import_module(module).DATABASES
     return configure(databases=databases)
 
 
-def configure_one(alias: str, **kwargs):
+def configure_one(alias: str, **kwargs) -> DatabaseManager:
     databases = make_db_config(alias, **kwargs)
     return configure(databases=databases)
 
@@ -61,4 +61,6 @@ def make_db_config(alias: str = DEFAULT_ALIAS, **kwargs) -> dict:
     config = ChainMap(args, env)
     config = {key: config[key] for key in keys if key in config}
 
-    return {alias: config}
+    return {
+        alias: config,
+    }
