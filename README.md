@@ -782,7 +782,7 @@ Read on for customization options.
 
 #### Supported drivers
 
-Bocadillo (through Orator) supports a number of database drivers:
+Bocadillo supports a number of database drivers:
 
 | Database | Driver |
 |----------|--------|
