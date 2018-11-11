@@ -48,7 +48,7 @@ from bocadillo import API
     )
 ])
 def test_setup_sqlite_db(api: API, given: dict, expected: dict):
-    api.setup_db(module=None, **given)
+    api.setup_db(**given)
     conn = api.db.connection()
     try:
         assert conn.get_name() == expected['alias']
