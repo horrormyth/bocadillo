@@ -27,7 +27,7 @@ DEFAULT_ALIAS = 'default'
 
 def configure(databases: dict = None) -> DatabaseManager:
     assert DatabaseManager is not None, (
-        'Cannot configure databases: orator not installed',
+        'Cannot configure databases: orator not installed'
     )
     if databases is None:
         databases = {}
