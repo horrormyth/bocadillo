@@ -37,6 +37,7 @@ Under the hood, it uses the [Starlette](https://www.starlette.io) ASGI toolkit a
     - [Middleware](#middleware)
     - [CORS](#cors)
     - [HSTS](#hsts)
+    - [Databases](#databases)
     - [Testing](#testing)
     - [Deployment](#deployment)
 - [Contributing](#contributing)
@@ -89,6 +90,14 @@ Bocadillo is available on PyPI:
 ```bash
 pip install bocadillo
 ```
+
+### Extensions
+
+Bocadillo also provides a number of [setuptools](https://pypi.org/project/setuptools/) extensions. These can be used to install Bocadillo as well as the dependencies for a given feature.
+
+The following extensions are available:
+
+- `bocadillo[db]`: for using [Orator] and enabling databases features (see [Databases](#databases)).
 
 ## Usage
 
@@ -755,6 +764,87 @@ If you want enable [HTTP Strict Transport Security](https://developer.mozilla.or
 api = bocadillo.API(enable_hsts=True)
 ```
 
+### Databases
+
+> **Important**: these features are only available using the `[db]` extension to Bocadillo. See [Extensions](#extensions).
+
+Bocadillo integrates with the [Orator](https://orator-orm.com) ORM to provide database management features.
+
+To configure a database with default parameters, use:
+
+```python
+api.setup_db()
+```
+
+> **Note**: even when configured, the database will not be created until you apply database migrations (see [Running migrations](#running-migrations)).
+
+Read on for customization options.
+
+#### Supported drivers
+
+Bocadillo (through Orator) supports a number of database drivers:
+
+| Database | Driver |
+|----------|--------|
+| SQLite | `sqlite` |
+| MySQL | `mysql` |
+| PostgreSQL | `pgsql` |
+
+> **Note**: all drivers are provided by Orator and should work as expected. If you encounter issues, please let us know.
+
+#### Configuration parameters
+
+There are a number of database configuration parameters, each of which can be set either explicitly or through environment variables, according to the following table.
+
+| Option | Environment variable |
+|----------|--------|
+| `driver` | `DB_DRIVER` |
+| `database` | `DB_NAME` |
+| `user` | `DB_USER` |
+| `password` | `DB_PASSWORD` |
+| `host` | `DB_HOST` |
+| `port` | `DB_PORT` |
+
+#### Default configuration
+
+When using `api.setup_db()` without any parameters, all configuration will be retrieved from environment variables.
+
+If no environment variables are set, a SQLite database called `sqlite.db` will be configured by default. This is equivalent to setting `DB_DRIVER=sqlite` and `DB_NAME=sqlite.db`.
+
+#### Customization
+
+You can set configuration parameters by passing them directly to `.setup_db()`:
+
+```python
+# - Use the PostgreSQL driver.
+# - Retrieve host, port, user, password and database
+# name from environment variables.
+api.setup_db(driver='pgsql')
+```
+
+#### Explicit configuration
+
+For explicit configuration, `.setup_db()` also accepts a `databases` argument, which expects a Python dictionary complying with the [Orator configuration](https://orator-orm.com/docs/0.9/basic_usage.html#configuration) format, i.e. a set of database aliases mapping to their configuration dictionary.
+
+> **Note**: using this method, configuration will not be retrieved from environment variables, even if set. You'll need to retrieve them yourself using `os.getenv()`.
+
+The following will have the same effect than the default configuration:
+
+```python
+api.setup_db(databases={
+    'default': {
+        'driver': 'sqlite',
+        'database': 'sqlite.db',
+    },
+})
+```
+
+Notably, this method allows you to configure multiple databases by providing multiple aliases.
+
+#### Running migrations
+
+> TODO
+
 ### Testing
 
 > TODO
@@ -780,5 +870,5 @@ To see what has already been implemented for the next release, see the [Unreleas
 <!-- URLs -->
 
 [travis-url]: https://travis-ci.org/florimondmanca/bocadillo
-
 [pypi-url]: https://pypi.org/project/bocadillo/
+[Orator]: https://orator-orm.com

@@ -18,7 +18,6 @@ from .constants import ALL_HTTP_METHODS
 from .cors import DEFAULT_CORS_CONFIG
 from .error_handlers import ErrorHandler, handle_http_error
 from .exceptions import HTTPError
-from .ext import orator
 from .middleware import CommonMiddleware, RoutingMiddleware
 from .redirection import Redirection
 from .request import Request
@@ -123,14 +122,13 @@ class API:
 
     def setup_db(
             self,
-            alias: Optional[str] = orator.DEFAULT_ALIAS,
-            driver: Optional[str] = orator.DEFAULT_DRIVER,
-            database: Optional[str] = orator.DEFAULT_DB_NAME,
+            alias: Optional[str] = 'default',
+            driver: Optional[str] = None,
+            database: Optional[str] = None,
             user: Optional[str] = None,
             password: Optional[str] = None,
             host: Optional[str] = None,
             port: Optional[str] = None,
-            module: Optional[str] = None,
             databases: Optional[dict] = None,
     ):
         """Configure an Orator database.
@@ -149,7 +147,7 @@ class API:
             Defaults to $DB_DRIVER or 'sqlite'.
         database : str, optional
             The name of the database.
-            Defaults to $DB_NAME or 'sqlite.db'.
+            Defaults to $DB_NAME, or 'sqlite.db' (if using the sqlite driver).
         user : str, optional
             The name of the user on the database.
             Defaults to $DB_USER or None.
@@ -162,9 +160,6 @@ class API:
         port : str, optional
             The port on which the database is accessible.
             Defaults to $DB_PORT or None.
-        module : str, optional
-            The module path to an Orator configuration Python module.
-            Defaults to None.
         databases : dict, optional
             An explicit configuration dictionary for advanced usages
             (e.g. multiple databases).
@@ -175,10 +170,10 @@ class API:
         Orator ORM configuration :
             https://orator-orm.com/docs/0.9/basic_usage.html#configuration
         """
+        from .ext import orator
+
         if databases is not None:
             db = orator.configure(databases=databases)
-        elif module is not None:
-            db = orator.configure_from_module(module)
         else:
             db = orator.configure_one(
                 alias=alias,
