@@ -766,7 +766,7 @@ api = bocadillo.API(enable_hsts=True)
 
 ### Databases
 
-> **Important**: these features are only available using the `[db]` extension to Bocadillo. See [Extensions](#extensions).
+> Databases are only available if Bocadillo was installed with the `[db]` extension. See [Extensions](#extensions).
 
 Bocadillo integrates with the [Orator](https://orator-orm.com) ORM to provide database management features.
 
@@ -813,22 +813,21 @@ If no environment variables are set, a SQLite database called `sqlite.db` will b
 
 #### Customization
 
-You can set configuration parameters by passing them directly to `.setup_db()`:
+You can customize configuration parameters by passing them directly to `.setup_db()`:
 
 ```python
-# - Use the PostgreSQL driver.
-# - Retrieve host, port, user, password and database
-# name from environment variables.
+# Uses the PostgreSQL driver.
+# Retrieves host, port, user, password and database name from environment variables.
 api.setup_db(driver='pgsql')
 ```
 
-#### Explicit configuration
+#### Explicit configuration (advanced usage)
 
-For explicit configuration, `.setup_db()` also accepts a `databases` argument, which expects a Python dictionary complying with the [Orator configuration](https://orator-orm.com/docs/0.9/basic_usage.html#configuration) format, i.e. a set of database aliases mapping to their configuration dictionary.
+For advanced usages, `.setup_db()` also accepts a `databases` argument, which expects a Python dictionary complying with the [Orator configuration](https://orator-orm.com/docs/0.9/basic_usage.html#configuration) format, i.e. a set of database aliases mapping to their configuration dictionary.
 
 > **Note**: using this method, configuration will not be retrieved from environment variables, even if set. You'll need to retrieve them yourself using `os.getenv()`.
 
-The following will have the same effect than the default configuration:
+The following is equivalent to the default configuration:
 
 ```python
 api.setup_db(databases={
