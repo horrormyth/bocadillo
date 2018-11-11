@@ -28,6 +28,9 @@ setuptools.setup(
         'requests',
         'parse',
     ],
+    extras_require={
+        'db': ['orator'],
+    },
     url='https://github.com/florimondmanca/bocadillo',
     license='MIT',
     classifiers=[

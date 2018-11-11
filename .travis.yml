@@ -13,7 +13,7 @@ matrix:
       sudo: true
 
 install:
-  - pip install .
+  - pip install ".[db]"
 
 script:
   - pytest
