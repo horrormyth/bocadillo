@@ -417,13 +417,15 @@ req.query_params.getlist('sub')  # ['2', '3']
 
 #### Body
 
-In Bocadillo, response body is always accessed using async/await. You can
-retrieve it through different means depending on the expected encoding:
+In Bocadillo, **the response body is an awaitable**, which means it can
+only be used inside **asynchronous** views.
+
+You can retrieve it in several ways, depending on the expected encoding:
 
 - Bytes : `await req.body()`
 - Form data: `await req.form()`
 - JSON: `await req.json()`
-- Stream (advanced usage): `async for chunk in req.chunk(): ...`
+- Stream (advanced usage): `async for chunk in req.stream(): ...`
 
 ### Responses
 
@@ -568,7 +570,7 @@ to where the app is executed. For example:
     └── index.html
 ```
 
-You can change the template directory using the `templates_dir` option:
+You can change the templates directory using the `templates_dir` option:
 
 ```python
 api = bocadillo.API(templates_dir='path/to/templates')
@@ -650,8 +652,8 @@ api = bocadillo.API(static_dir=None)
 
 #### Returning error responses
 
-To return an error HTTP response, you can raise an `HTTPError` exception.
-Bocadillo will catch it and return an appropriate response:
+If you raise an `HTTPError` inside a view, Bocadillo will catch it and
+return an appropriate response:
 
 ```python
 from bocadillo.exceptions import HTTPError
@@ -681,10 +683,15 @@ You can customize error handling by registering your own error handlers.
 This can be done using the `@api.error_handler()` decorator:
 
 ```python
-@api.error_handler(KeyError)
-def on_key_error(req, res, exc: KeyError):
-    res.status = 400
-    res.text = f"You fool! We didn't find the key '{exc.args[0]}'."
+from bocadillo.exceptions import HTTPError
+
+@api.error_handler(HTTPError)
+def on_key_error(req, res, exc: HTTPError):
+    res.status = exc.status_code
+    res.media = {
+        'status_code': exc.status_code,
+        'detail': exc.status_phrase,
+    }
 ```
 
 For convenience, a non-decorator syntax is also available:
@@ -707,7 +714,7 @@ Middleware classes provide behavior for the entire application. They act as an i
 
 #### Routing middleware
 
-**Routing middleware** is a high-level API for performing operations before and after a request is routed to the Bocadillo application.
+Routing middleware performs operations before and after a request is routed to the Bocadillo application.
 
 To define a custom routing middleware class, create a subclass of `bocadillo.RoutingMiddleware` and implement `.before_dispatch()` and `.after_dispatch()` as necessary:
 
@@ -723,7 +730,7 @@ class PrintUrlMiddleware(bocadillo.RoutingMiddleware):
         print(res.url)
 ```
 
-**Note**: the underlying application (which is either another routing middleware or the `API` object) is available on the `.app` attribute.
+> **Note**: the underlying application (which is either another routing middleware or the `API` object) is available on the `.app` attribute.
 
 You can then register the middleware using `add_middleware()`:
 
@@ -754,7 +761,7 @@ api = bocadillo.API(
 )
 ```
 
-Please refer to Starlette's [CORSMiddleware documentation](https://www.starlette.io/middleware/#corsmiddleware) for the full list of options and defaults.
+Please refer to Starlette's [CORSMiddleware](https://www.starlette.io/middleware/#corsmiddleware) documentation for the full list of options and defaults.
 
 ### HSTS
 
