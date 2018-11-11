@@ -121,21 +121,25 @@ class API:
     def _build_client(self) -> TestClient:
         return TestClient(self)
 
-    def setup_orator(
+    def setup_db(
             self,
-            alias: str = orator.DEFAULT_ALIAS,
-            driver: str = orator.DEFAULT_DRIVER,
-            name: str = orator.DEFAULT_DB_NAME,
-            user: str = None,
-            password: str = None,
-            host: str = None,
-            port: str = None,
-            databases: dict = None,
-            module: str = None,
+            alias: Optional[str] = orator.DEFAULT_ALIAS,
+            driver: Optional[str] = orator.DEFAULT_DRIVER,
+            database: Optional[str] = orator.DEFAULT_DB_NAME,
+            user: Optional[str] = None,
+            password: Optional[str] = None,
+            host: Optional[str] = None,
+            port: Optional[str] = None,
+            module: Optional[str] = 'settings',
+            databases: Optional[dict] = None,
     ):
         """Configure an Orator database.
 
-        Without any parameters, this will configure a SQLite database.
+        Without any parameters, this will:
+
+        - Try to import database settings from `settings.py`.
+        - If not available, use the default parameters and configure
+        a SQLite database.
 
         Parameters
         ----------
@@ -146,7 +150,7 @@ class API:
             Orator database driver used.
             One of: 'sqlite', 'pgsql', 'mysql'.
             Defaults to $DB_DRIVER or 'sqlite'.
-        name : str, optional
+        database : str, optional
             The name of the database.
             Defaults to $DB_NAME or 'sqlite.db'.
         user : str, optional
@@ -163,6 +167,7 @@ class API:
             Defaults to $DB_PORT or None.
         module : str, optional
             The module path to an Orator configuration Python module.
+            Defaults to 'settings'.
         databases : dict, optional
             An explicit configuration dictionary for advanced usages
             (e.g. multiple databases).
@@ -172,15 +177,22 @@ class API:
         Orator ORM configuration :
             https://orator-orm.com/docs/0.9/basic_usage.html#configuration
         """
-        if module is not None:
-            db, config = orator.configure_from_module(module)
-        elif databases is not None:
+        db = None
+        config = None
+
+        if databases is not None:
             db, config = orator.configure(databases=databases)
-        else:
+        elif module is not None:
+            try:
+                db, config = orator.configure_from_module(module)
+            except ImportError:
+                pass
+
+        if db is None or config is None:
             db, config = orator.configure_one(
                 alias=alias,
                 driver=driver,
-                database=name,
+                database=database,
                 user=user,
                 password=password,
                 host=host,
