@@ -26,6 +26,9 @@ DEFAULT_ALIAS = 'default'
 # https://orator-orm.com/docs/0.9/orm.html#basic-usage
 
 def configure(databases: dict = None) -> DatabaseManager:
+    assert DatabaseManager is not None, (
+        'Cannot configure databases: orator not installed',
+    )
     if databases is None:
         databases = {}
     db = DatabaseManager(databases)
