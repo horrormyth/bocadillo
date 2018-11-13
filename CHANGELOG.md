@@ -8,6 +8,11 @@ Bocadillo adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 
+### Added
+
+- Add `boca`, Bocadillo's extensible CLI.
+- Add `init:custom` command to generate files for building custom Boca commands.
+
 ## [v0.4.0] - 2018-11-10
 
 ### Added
