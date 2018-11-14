@@ -790,7 +790,7 @@ load_dotenv()
 db, Model, DATABASES = setup_db(driver='sqlite')
 ```
 
-As you can see, this files configures a SQLite driver by default. See the next section for the list of supported drivers.
+As you can see, this file configures a SQLite driver by default. See the next section for the list of supported drivers.
 
 The `db` object and `Model` class will be useful to you when building models. See the [Basic CRUD application](#basic-crud-application) guide for a practical example.
 
