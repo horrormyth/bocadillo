@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import bocadillo
 from bocadillo.exceptions import HTTPError
 from bocadillo.response import Response
+from models.post import Post
 
 load_dotenv()
 
@@ -24,6 +25,19 @@ def fail(req, resp, status: int):
 @api.route('/negation/{x:d}')
 def negate(req, res, x: int):
     res.media = {'result': -x}
+
+
+@api.route('/posts')
+class PostsView:
+
+    async def get(self, req, res):
+        res.media = [post.to_dict() for post in Post.all()]
+
+    async def post(self, req, res):
+        data = await req.json()
+        keys = ('title', 'content', 'slug')
+        post = Post.create(**{key: data[key] for key in keys})
+        res.media = post.to_dict()
 
 
 @api.route('/no-content')
