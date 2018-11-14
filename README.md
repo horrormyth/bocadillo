@@ -766,7 +766,6 @@ If you want enable [HTTP Strict Transport Security](https://developer.mozilla.or
 api = bocadillo.API(enable_hsts=True)
 ```
 
-<<<<<<< HEAD
 ### Databases
 
 > Databases are only available if Bocadillo was installed with the `[db]` extension. See [Extensions](#extensions).
