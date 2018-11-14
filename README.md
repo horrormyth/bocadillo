@@ -787,10 +787,12 @@ from dotenv import load_dotenv
 from bocadillo.db import setup_db
 
 load_dotenv()
-db, Model, DATABASES = setup_db()
+db, Model, DATABASES = setup_db(driver='sqlite')
 ```
 
-This file configures the database and provides you with the `db` object (an Orator `DatabaseManager`) and the base `Model` class. See the [Basic CRUD application](#basic-crud-application) guide for how these can be used to build and use models.
+As you can see, this files configures a SQLite driver by default. See the next section for the list of supported drivers.
+
+The `db` object and `Model` class will be useful to you when building models. See the [Basic CRUD application](#basic-crud-application) guide for a practical example.
 
 > **Note**: even when configured, the database will not be created until you apply database migrations (see [Running migrations](#running-migrations)).
 
