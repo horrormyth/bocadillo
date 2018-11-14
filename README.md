@@ -792,7 +792,7 @@ db, Model, DATABASES = setup_db(driver='sqlite')
 
 As you can see, this file configures a SQLite driver by default. See the next section for the list of supported drivers.
 
-The `db` object and `Model` class will be useful to you when building models. See the [Basic CRUD application](#basic-crud-application) guide for a practical example.
+The `db` object and `Model` class will be useful to you when building models. See the [Basic CRUD application](#basic-crud-application) guide for a practical example. As for `DATABASES`, exposing it is required for using database management commands through Orator CLI.
 
 > **Note**: even when configured, the database will not be created until you apply database migrations (see [Running migrations](#running-migrations)).
 
