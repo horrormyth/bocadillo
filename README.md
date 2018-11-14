@@ -959,7 +959,7 @@ This guide shows you how to build a basic blog CRUD app using Bocadillo's databa
 
 #### Creating a model
 
-Unlike most Python ORMs, Orator is based on the [Active Record pattern](https://en.wikipedia.org/wiki/Active_record_pattern). In practice, this means that **fields are specified in migrations rather than on the model**, which actually has a number of advantages. This also means that the model is essentially an empty class that merely defines some metadata about the model.
+Unlike most Python ORMs, Orator is based on the [Active Record pattern](https://en.wikipedia.org/wiki/Active_record_pattern). In practice, this means that **fields are specified in migrations rather than on the model**, which actually has a number of advantages. This also means that the model is essentially an empty class that merely defines some metadata.
 
 Let's create a `Post` model for our blog. We recommend grouping models in a `models` package, so go ahead and create a `post.py` file:
 
