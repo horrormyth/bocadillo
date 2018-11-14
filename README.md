@@ -971,13 +971,13 @@ class Post(Model):
     __fields__ = ('title', 'slug', 'content')
 ```
 
-For more information, see documentation on Orator's [ORM](https://orator-orm.com/docs/0.9/orm.html).
+For more information and the available options for `Model` classes, see documentation on Orator's [ORM](https://orator-orm.com/docs/0.9/orm.html).
 
 #### Writing migrations
 
-Even though the model is defined, we need to generate and write the migration.
+Now that the model is defined, we can generate and write the migration.
 
-Let's generate it with Orator CLI:
+Let's generate it with [Orator CLI](https://orator-orm.com/docs/0.9/migrations.html#):
 
 ```bash
 orator make:migration create_posts_table --table=posts --create
@@ -1028,7 +1028,7 @@ Now that we wrote the migration, we can apply it:
 orator migrate -c config/db.py
 ```
 
-We can verify that migrations migrations have been applied:
+We can verify that migrations have been applied:
 
 ```bash
 orator migrate:status -c config/db.py
@@ -1046,7 +1046,7 @@ orator migrate:status -c config/db.py
 
 Now that we created a model and migrated the database schema, we can use it in views.
 
-How about we allow users to create, read and delete blog posts? Here is the corresponding full `app.py` file:
+How about we provide API endpoints to create, read and delete blog posts? Here is the corresponding `app.py` file:
 
 ```python
 # app.py
