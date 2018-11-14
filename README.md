@@ -41,7 +41,7 @@ Under the hood, it uses the [Starlette](https://www.starlette.io) ASGI toolkit a
     - [CLI](#cli)
     - [Testing](#testing)
     - [Deployment](#deployment)
-- [Guides]
+- [Guides](#guides)
     - [Basic CRUD application](#basic-crud-application)
 - [Contributing](#contributing)
 - [Changelog](#changelog)
