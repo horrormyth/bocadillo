@@ -41,6 +41,8 @@ Under the hood, it uses the [Starlette](https://www.starlette.io) ASGI toolkit a
     - [CLI](#cli)
     - [Testing](#testing)
     - [Deployment](#deployment)
+- [Guides]
+    - [Basic CRUD application](#basic-crud-application)
 - [Contributing](#contributing)
 - [Changelog](#changelog)
 - [Roadmap](#roadmap)
@@ -771,20 +773,27 @@ api = bocadillo.API(enable_hsts=True)
 
 Bocadillo integrates with the [Orator](https://orator-orm.com) ORM to provide database management features.
 
-To configure a database with default parameters, use:
+To configure a database with default parameters, use Boca's `init:db` command:
 
-```python
-import bocadillo
-api = bocadillo.API()
-
-# `DATABASES` must be exposed for using database-related CLI commands
-api.setup_db()
-DATABASES = api.db.config
+```bash
+boca init:db
 ```
 
-> **Note**: even when configured, the database will not be created until you apply database migrations (see [Running migrations](#running-migrations)).
+This will generate a `config` package and place the following file inside:
 
-Read on for customization options.
+```python
+# db.py
+from dotenv import load_dotenv
+
+from bocadillo.db import setup_db
+
+load_dotenv()
+db, Model, DATABASES = setup_db()
+```
+
+This file configures the database and provides you with the `db` object (an Orator `DatabaseManager`) and the base `Model` class. See the [Basic CRUD application](#basic-crud-application) guide for how these can be used to build and use models.
+
+> **Note**: even when configured, the database will not be created until you apply database migrations (see [Running migrations](#running-migrations)).
 
 #### Supported drivers
 
@@ -796,11 +805,16 @@ Bocadillo supports a number of database drivers:
 | MySQL | `mysql` |
 | PostgreSQL | `pgsql` |
 
+Note that extra packages are needed for certain drivers:
+
+- `mysql`: requires installing [PyMySQL](https://github.com/PyMySQL/PyMySQL) or [mysqlclient](https://github.com/PyMySQL/mysqlclient-python).
+- `pgsql`: requires installing [psycopg2](https://github.com/psycopg/psycopg2).
+
 > **Note**: all drivers are provided by Orator and should work as expected. If you encounter issues, please let us know.
 
 #### Configuration parameters
 
-There are a number of database configuration parameters, each of which can be set either explicitly or through **environment variables**, according to the following table.
+There are a number of database configuration parameters, each of which can be set either explicitly or through environment variables, according to the following table.
 
 | Option | Environment variable |
 |----------|--------|
@@ -813,32 +827,32 @@ There are a number of database configuration parameters, each of which can be se
 
 #### Default configuration
 
-When using `api.setup_db()` without any parameters, all configuration will be retrieved from environment variables.
+When using `setup_db()` without any parameters, **all configuration will be retrieved from environment variables**.
 
 If no environment variables are set, a SQLite database called `sqlite.db` will be configured by default. This is equivalent to setting `DB_DRIVER=sqlite` and `DB_NAME=sqlite.db`.
 
 #### Customization
 
-The recommended way of customizing database configuration is to use environment variables, as specified in [Configuration parameters](#configuration-parameters). We recommended placing them in a `.env` file and loading them into Python using [dotenv](https://pypi.org/project/python-dotenv/#installation).
+The recommended way of customizing database configuration is to use the environment variables specified in [Configuration parameters](#configuration-parameters). We recommended placing them in a `.env` file so that they are automatically loaded by [dotenv](https://pypi.org/project/python-dotenv/#installation) in the `db.py` script.
 
-Alternatively, you can pass configuration parameters directly to `.setup_db()`:
+Alternatively, you can pass configuration parameters directly to `setup_db()`:
 
 ```python
 # Uses the PostgreSQL driver.
 # Retrieves host, port, user, password and database name from environment variables.
-api.setup_db(driver='pgsql')
+db, Model, DATABASES = setup_db(driver='pgsql')
 ```
 
 #### Explicit configuration (advanced usage)
 
-For advanced usages, `.setup_db()` also accepts a `databases` argument, which expects a Python dictionary complying with the [Orator configuration](https://orator-orm.com/docs/0.9/basic_usage.html#configuration) format, i.e. a set of database aliases mapping to their configuration dictionary.
+For advanced usages, `setup_db()` also accepts a `databases` argument, which expects a Python dictionary complying with the [Orator configuration](https://orator-orm.com/docs/0.9/basic_usage.html#configuration) format, i.e. a set of database aliases mapping to their configuration dictionary.
 
 > **Note**: using this method, configuration will not be retrieved from environment variables, even if set. You'll need to retrieve them yourself using `os.getenv()`.
 
 The following is equivalent to the default configuration:
 
 ```python
-api.setup_db(databases={
+db, Model, DATABASES = setup_db(databases={
     'default': {
         'driver': 'sqlite',
         'database': 'sqlite.db',
@@ -848,9 +862,9 @@ api.setup_db(databases={
 
 Notably, this method allows you to configure multiple databases by providing multiple aliases.
 
-#### Running migrations
+#### Using the ORM
 
-> TODO
+Once the database is configured, you can use the full powers of Orator to build and use models in your Bocadillo app. Check out the [Basic CRUD application](#basic-crud-application) guide to get started!
 
 ### CLI
 
@@ -935,6 +949,163 @@ Of course, you can leverage Click's awesome features when building custom comman
 ### Deployment
 
 > TODO
+
+## Guides
+
+### Basic CRUD application
+
+This guide shows you how to build a basic blog CRUD app using Bocadillo's database features.
+
+#### Creating a model
+
+To create a model, use the Orator CLI:
+
+```bash
+# -m also creates a migration
+orator make:model Post -m
+```
+
+This generates a model and a migration file:
+
+```
+.
+├── app.py
+├── migrations
+│   ├── __init__.py
+│   └── 2018_11_14_171748_create_posts_table.py
+└── models
+    ├── __init__.py
+    └── post.py
+```
+
+Contrary to Django, with Orator model fields are specified directly in the migration, which has a number of advantages. This also means that the model is essentially an empty class, although generally define which fields are available when creating a new instance of the model, e.g.:
+
+```python
+# models/post.py
+
+class Post:
+    __fillable__ = ('title', 'slug', 'content')
+```
+
+For more information, see documentation on Orator's [ORM](https://orator-orm.com/docs/0.9/orm.html).
+
+#### Writing migrations
+
+Let's see how to add some fields onto the model, which is equivalent to adding columns to the `posts` table.
+
+The migration file generated by Orator should be like the following:
+
+```python
+# 2018_11_14_171748_create_posts_table.py
+from orator.migrations import Migration
+
+
+class CreatePostsTable(Migration):
+
+    def up(self):
+        """
+        Run the migrations.
+        """
+        with self.schema.create('posts') as table:
+            table.increments('id')
+            table.timestamps()
+
+    def down(self):
+        """
+        Revert the migrations.
+        """
+        self.schema.drop('posts')
+```
+
+In `.up()`, you see the post's ID and timestamps (`created_at`, `updated_at`) are already specified. We can add more columns after them — that is, those we declared on the model's `__fields__`:
+
+```python
+def up(self):
+    with self.schema.create('posts') as table:
+        # ...
+        table.char('title', 128)
+        table.char('slug', 128)
+        table.string('content')
+```
+
+Here, we add two `CHAR(128)` columns and one `VARCHAR` column. You can see the full reference on database columns in the docs for Orator's [Schema Builder](https://orator-orm.com/docs/0.9/schema_builder.html#).
+
+#### Running migrations
+
+Now that we wrote the migration, we can apply it:
+
+```bash
+orator migrate -c config/db.py
+```
+
+We can verify that migrations migrations have been applied:
+
+```bash
+orator migrate:status -c config/db.py
+```
+
+```
++--------------------------------------+------+
+| Migration                            | Ran? |
++--------------------------------------+------+
+| 2018_11_14_171748_create_posts_table | Yes  |
++--------------------------------------+------+
+```
+
+#### Using the model in views
+
+Now that we created a model and migrated the database schema, we can use it in views.
+
+How about we allow users to create, read and delete blog posts? Here is the corresponding full `app.py` file:
+
+```python
+# app.py
+import bocadillo
+from bocadillo.exceptions import HTTPError
+from models.post import Post
+
+
+api = bocadillo.API()
+
+
+@api.route('/posts')
+class PostsView:
+    
+    async def post(self, req, res):
+        data = await req.json()
+        post = Post.create(
+            title=data['title'],
+            slug=data['slug'],
+            content=data['content'],
+        )
+        res.media = post.to_dict()
+        res.status_code = 201
+
+    async def get(self, req, res):
+        res.media = [post.to_dict() for post in Post.all()]
+
+
+@api.route('/posts/{pk:d}')
+class PostDetailView:
+
+    async def get(self, req, res, pk: int):
+        post = Post.find(id=pk)
+        if post is None:
+            raise HTTPError(404)
+        res.media = post.to_dict()
+
+    async def delete(self, req, res, pk: int):
+        post = Post.find(id=pk)
+        if post is not None:
+            post.delete()
+        res.status_code = 204
+
+
+if __name__ == '__main__':
+    app.run()
+```
+
+There you go — a CRUD application in Bocadillo! 🥙
 
 ## Contributing
 

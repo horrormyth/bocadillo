@@ -29,7 +29,7 @@ setuptools.setup(
         'parse',
     ],
     extras_require={
-        'db': ['orator'],
+        'db': ['orator', 'python-dotenv'],
     },
     url='https://github.com/florimondmanca/bocadillo',
     license='MIT',

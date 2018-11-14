@@ -1,4 +1,4 @@
-from orator import Model
+from config.db import Model
 
 
 class Post(Model):
