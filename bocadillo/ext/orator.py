@@ -29,12 +29,7 @@ def configure(databases: dict = None) -> DatabaseManager:
     return db
 
 
-def configure_one(alias: str, **kwargs) -> DatabaseManager:
-    databases = _make_db_config(alias, **kwargs)
-    return configure(databases=databases)
-
-
-def _make_db_config(alias: str = 'default', **kwargs) -> dict:
+def make_db_config(alias: str = 'default', **kwargs) -> dict:
     keys = (
         'driver',
         'database',

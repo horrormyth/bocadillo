@@ -774,7 +774,12 @@ Bocadillo integrates with the [Orator](https://orator-orm.com) ORM to provide da
 To configure a database with default parameters, use:
 
 ```python
+import bocadillo
+api = bocadillo.API()
+
+# `DATABASES` must be exposed for using database-related CLI commands
 api.setup_db()
+DATABASES = api.db.config
 ```
 
 > **Note**: even when configured, the database will not be created until you apply database migrations (see [Running migrations](#running-migrations)).
@@ -795,7 +800,7 @@ Bocadillo supports a number of database drivers:
 
 #### Configuration parameters
 
-There are a number of database configuration parameters, each of which can be set either explicitly or through environment variables, according to the following table.
+There are a number of database configuration parameters, each of which can be set either explicitly or through **environment variables**, according to the following table.
 
 | Option | Environment variable |
 |----------|--------|
@@ -814,7 +819,9 @@ If no environment variables are set, a SQLite database called `sqlite.db` will b
 
 #### Customization
 
-You can customize configuration parameters by passing them directly to `.setup_db()`:
+The recommended way of customizing database configuration is to use environment variables, as specified in [Configuration parameters](#configuration-parameters). We recommended placing them in a `.env` file and loading them into Python using [dotenv](https://pypi.org/project/python-dotenv/#installation).
+
+Alternatively, you can pass configuration parameters directly to `.setup_db()`:
 
 ```python
 # Uses the PostgreSQL driver.

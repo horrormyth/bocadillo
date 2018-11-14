@@ -87,7 +87,7 @@ class API:
 
         self._extra_apps: Dict[str, Any] = {}
 
-        self._db: Optional[orator.DatabaseManager] = None
+        self._db = None
         self._db_config: Optional[dict] = None
 
         self.client = self._build_client()
@@ -172,10 +172,8 @@ class API:
         """
         from .ext import orator
 
-        if databases is not None:
-            db = orator.configure(databases=databases)
-        else:
-            db = orator.configure_one(
+        if databases is None:
+            databases = orator.make_db_config(
                 alias=alias,
                 driver=driver,
                 database=database,
@@ -185,7 +183,10 @@ class API:
                 port=port,
             )
 
+        db: orator.DatabaseManager = orator.configure(databases=databases)
+
         self._db = db
+        self._db.config = databases
 
     @property
     def db(self):

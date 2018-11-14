@@ -1,9 +1,14 @@
+from dotenv import load_dotenv
+
 import bocadillo
 from bocadillo.exceptions import HTTPError
 from bocadillo.response import Response
 
+load_dotenv()
+
 api = bocadillo.API(static_root='assets')
 api.setup_db()
+DATABASES = api.db.config
 
 
 @api.route('/greet/{person}', methods=['post'])
