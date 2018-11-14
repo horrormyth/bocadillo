@@ -1,9 +1,10 @@
 """Bocadillo CLI factory."""
 import os
+import pathlib
 from inspect import cleandoc
-from typing import List
+from typing import List, Optional
 
-from .ext import click
+import click
 
 CUSTOM_COMMANDS_FILE_ENV_VAR = 'BOCA_CUSTOM_COMMANDS_FILE'
 
@@ -78,6 +79,89 @@ def create_cli() -> click.Command:
     def help_(ctx):
         """Show help about boca."""
         click.echo(ctx.parent.get_help())
+
+    @builtin.command(name='init:db')
+    @click.option('-d', '--driver',
+                  type=click.Choice(['mysql', 'pgsql', 'sqlite']),
+                  default='sqlite')
+    @click.option('-y', '--no-input', is_flag=True,
+                  help='Answer yes to all confirmations.')
+    @click.option('--directory',
+                  default='.',
+                  help='Where files should be generated')
+    def init_db(driver: Optional[str], no_input: bool, directory: str):
+        """Generate files for configuring a database."""
+        options = {'driver': driver}
+        options_contents = ', '.join(f'{key}=\'{value}\''
+                                     for key, value in options.items())
+        contents = cleandoc(
+            f'''"""Database configuration.
+            
+            For help with the Orator ORM, see the official docs:
+            https://orator-orm.com
+            
+            Get started: import the `Model` base class from here and start
+            building models!
+            """
+            from dotenv import load_dotenv
+
+            from bocadillo.db import setup_db
+
+            load_dotenv()
+            db, Model, DATABASES = setup_db({options_contents})
+            '''
+        ) + '\n'
+        click.echo(click.style('Using driver: '), nl=False)
+        click.echo(click.style(driver, fg='blue'))
+
+        where = pathlib.Path(directory)
+        config_package = where / 'config'
+        config_package_path = str(config_package)
+        db_script_path = str(where / 'config' / 'db.py')
+
+        if not os.path.exists(config_package_path):
+            config_package.mkdir()
+            with open(str(config_package / '__init__.py'), 'w') as f:
+                pass
+
+        if os.path.exists(db_script_path) and not no_input:
+            click.confirm(
+                click.style(
+                    f'{db_script_path} will be overwritten. Continue?',
+                    fg='yellow',
+                ),
+                abort=True,
+            )
+
+        with open(db_script_path, 'w') as f:
+            f.write(contents)
+
+        click.echo(click.style('Success. ', fg='green', bold=True), nl=False)
+
+        env_variables_by_driver = {
+            'sqlite': (
+                'DB_NAME',
+            ),
+            'mysql': (
+                'DB_NAME',
+                'DB_HOST',
+                'DB_PORT',
+                'DB_USER',
+                'DB_PASSWORD',
+            ),
+            'pgsql': (
+                'DB_NAME',
+                'DB_HOST',
+                'DB_PORT',
+                'DB_USER',
+                'DB_PASSWORD',
+            ),
+        }
+        env_variables = env_variables_by_driver[driver]
+        click.echo(
+            'Remember setting the following environment variable(s): '
+            f'{", ".join(env_variables)}.'
+        )
 
     @builtin.command(name='init:custom')
     @click.option('-d', '--directory', default='',
