@@ -3,7 +3,7 @@ import sqlite3
 
 import pytest
 
-from bocadillo import API
+from bocadillo.db import setup_db
 
 
 @pytest.mark.parametrize('given, expected', [
@@ -47,9 +47,9 @@ from bocadillo import API
             }
     )
 ])
-def test_setup_sqlite_db(api: API, given: dict, expected: dict):
-    api.setup_db(**given)
-    conn = api.db.connection()
+def test_setup_sqlite_db(given: dict, expected: dict):
+    db, Model, DATABASES = setup_db(**given)
+    conn = db.connection()
     try:
         assert conn.get_name() == expected['alias']
         assert conn.get_database_name() == expected['database']
