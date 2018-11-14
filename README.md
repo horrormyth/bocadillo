@@ -781,7 +781,7 @@ boca init:db
 This will generate a `config` package and place the following file inside:
 
 ```python
-# db.py
+# config/db.py
 from dotenv import load_dotenv
 
 from bocadillo.db import setup_db
