@@ -184,8 +184,8 @@ async def add(x: int, y: int) -> int:
 
 Don't:
 
-```
-async defadd(x, y):
+```python
+async def add(x, y):
     return x + y
 ```
 
