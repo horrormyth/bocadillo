@@ -1,8 +1,6 @@
-import asyncio
-import inspect
 from typing import Callable, Union, Coroutine
 
-from .compat import call_async
+from .compat import check_async
 from .constants import ALL_HTTP_METHODS
 from .request import Request
 from .response import Response
@@ -39,20 +37,23 @@ View = Union[AsyncView, ClassBasedView]
 
 
 def create_async_view(view: View) -> AsyncView:
-    """Create function asynchronous view from function or class-based view."""
-    if asyncio.iscoroutinefunction(view):
+    """Create function asynchronous view from function or class-based view.
+
+    Raises
+    ------
+    TypeError : if the view is a synchronous function.
+    """
+    if callable(view):
+        check_async(view)
         return view
-    elif inspect.isfunction(view):
-
-        async def callable_view(req, res, **kwargs):
-            await call_async(view, req, res, sync=True, **kwargs)
-
-        return callable_view
     else:
         return _from_class_instance(view)
 
 
 def _from_class_instance(view: ClassBasedView):
+    for _, method_view in get_declared_method_views(view):
+        check_async(method_view)
+
     def _find_for_method(method: str):
         try:
             return getattr(view, "handle")
@@ -61,7 +62,7 @@ def _from_class_instance(view: ClassBasedView):
 
     async def callable_view(req, res, **kwargs):
         view_ = _find_for_method(req.method)
-        await call_async(view_, req, res, **kwargs)
+        await view_(req, res, **kwargs)
 
     return callable_view
 

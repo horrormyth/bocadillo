@@ -20,7 +20,7 @@ class RouteBuilder:
             res = {}
 
         @self._api.route(pattern, *args, **kwargs)
-        def view(request, response):
+        async def view(request, response):
             for key, value in res.items():
                 setattr(response, key, value)
 
@@ -51,23 +51,23 @@ def function_hooks(before_value: Any = True, after_value: Any = True):
 
 
 @contextmanager
-def async_function_hooks(expected_before=True, expected_after=True):
+def async_function_hooks(before_value: Any = True, after_value: Any = True):
     flags = {"before": False, "after": False}
 
-    async def before(req, res, params):
+    async def before(req, res, params, value=before_value):
         nonlocal flags
         assert not flags["after"]
-        flags["before"] = True
+        flags["before"] = value
 
-    async def after(req, res, params):
+    async def after(req, res, params, value=after_value):
         nonlocal flags
         assert flags["before"]
-        flags["after"] = True
+        flags["after"] = value
 
     yield before, after
 
-    assert flags["before"] is expected_before
-    assert flags["after"] is expected_after
+    assert flags["before"] == before_value
+    assert flags["after"] == after_value
 
 
 @contextmanager
@@ -79,7 +79,7 @@ def class_hooks():
             self.flag = flag
             self.value = value
 
-        def __call__(self, req, res, params):
+        async def __call__(self, req, res, params):
             nonlocal flags
             flags[self.flag] = self.value
 

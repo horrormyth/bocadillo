@@ -1,13 +1,13 @@
 from collections import defaultdict
 from functools import wraps
-from typing import Callable, Union, Dict, Coroutine
+from typing import Callable, Union, Dict, Awaitable
 
-from .compat import call_async, asynccontextmanager
+from .compat import asynccontextmanager, check_async
 from .request import Request
 from .response import Response
 from .routing import Route
 
-HookFunction = Callable[[Request, Response, dict], Coroutine]
+HookFunction = Callable[[Request, Response, dict], Awaitable[None]]
 HookCollection = Dict[Route, HookFunction]
 
 BEFORE = "before"
@@ -54,6 +54,8 @@ class HooksBase:
     def _hook_decorator(
         self, hook: str, hook_function: HookFunction, *args, **kwargs
     ):
+        check_async(hook_function)
+
         def decorator(hookable: Union[Route, Callable]):
             """Bind the hook function to the given hookable object.
 
@@ -99,9 +101,9 @@ class Hooks(HooksBase):
     @asynccontextmanager
     async def on(self, route, request, response, params):
         """Execute `before` hooks on enter and `after` hooks on exit."""
-        await call_async(self._hooks[BEFORE][route], request, response, params)
+        await self._hooks[BEFORE][route](request, response, params)
         yield
-        await call_async(self._hooks[AFTER][route], request, response, params)
+        await self._hooks[AFTER][route](request, response, params)
 
 
 class HooksMixin:
@@ -151,7 +153,7 @@ def _prepare_async_hook_function(
     full_hook_function, *args, **kwargs
 ) -> HookFunction:
     async def hook_function(req: Request, res: Response, params: dict):
-        await call_async(full_hook_function, req, res, params, *args, **kwargs)
+        await full_hook_function(req, res, params, *args, **kwargs)
 
     return hook_function
 
@@ -161,7 +163,7 @@ def _with_hook(view: Callable, hook: str, hook_function: HookFunction):
     async def with_hook(self, req, res, **kw):
         if hook == BEFORE:
             await hook_function(req, res, kw)
-        await call_async(view, self, req, res, **kw)
+        await view(self, req, res, **kw)
         if hook == AFTER:
             await hook_function(req, res, kw)
 

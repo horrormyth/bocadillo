@@ -35,10 +35,10 @@ def test_unsafe_methods_not_supported_by_default(api: API, method):
 def test_route_methods_ignored_on_class_based_views(api: API, methods, method):
     @api.route("/class", methods=methods)
     class Index:
-        def get(self, req, res):
+        async def get(self, req, res):
             pass
 
-        def put(self, req, res):
+        async def put(self, req, res):
             pass
 
     response = getattr(api.client, method)("/class")

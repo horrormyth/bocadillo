@@ -15,7 +15,7 @@ def test_if_route_not_registered_then_404(api: API):
 
 def test_if_route_registered_then_not_404(api: API):
     @api.route("/")
-    def test(req, res):
+    async def test(req, res):
         pass
 
     assert api.client.get("/").status_code != 404

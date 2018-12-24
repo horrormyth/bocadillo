@@ -1,15 +1,24 @@
 """Bocadillo middleware definition."""
 from typing import Coroutine, Callable
 
-from bocadillo.compat import call_async
-from bocadillo.response import Response
+from .compat import check_async
 from .request import Request
-
+from .response import Response
 
 Dispatcher = Callable[[Request], Coroutine]
 
 
-class Middleware:
+class MiddlewareMeta(type):
+    def __new__(mcs, name, bases, namespace):
+        cls = super().__new__(mcs, name, bases, namespace)
+        for attr in "before_dispatch", "dispatch", "after_dispatch":
+            method = getattr(cls, attr, None)
+            if method is not None:
+                check_async(method)
+        return cls
+
+
+class Middleware(metaclass=MiddlewareMeta):
     """Base class for middleware classes."""
 
     def __init__(self, dispatch: Dispatcher, **kwargs):
@@ -20,12 +29,12 @@ class Middleware:
         res: Response = None
 
         if hasattr(self, "before_dispatch"):
-            res = await call_async(self.before_dispatch, req)
+            res = await self.before_dispatch(req)
 
         res = res or await self.dispatch(req)
 
         if hasattr(self, "after_dispatch"):
-            res = await call_async(self.after_dispatch, req, res) or res
+            res = await self.after_dispatch(req, res) or res
 
         return res
 

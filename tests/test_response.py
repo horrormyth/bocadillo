@@ -23,7 +23,7 @@ def test_if_status_code_is_no_content_then_no_content_type_set(api: API):
 
 def test_content_type_defaults_to_plaintext(api: API):
     @api.route("/")
-    def index(req, res):
+    async def index(req, res):
         res.content = "Something magical"
         # make sure no content-type is set before leaving the view
         res.headers.pop("Content-Type", None)

@@ -16,6 +16,7 @@ async def test_render_using_dict(template_file: TemplateWrapper, api: API):
     assert html == template_file.rendered
 
 
+# TODO remove
 def test_render_sync(template_file: TemplateWrapper, api: API):
     html = api.template_sync(template_file.name, **template_file.context)
     assert html == template_file.rendered

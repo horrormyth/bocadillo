@@ -46,3 +46,14 @@ class UnsupportedMediaType(Exception):
 
     def __str__(self):
         return f'{self._media_type} (available: {", ".join(self._available)})'
+
+
+class ShouldBeAsync(TypeError):
+    """Raised when receiving a non-async view."""
+
+    def __init__(self, view):
+        name = getattr(view, "__qualname__", str(view))
+        super().__init__(
+            "expected callable to be asynchronous function: "
+            f"use `async def` instead of `def` on '{name}'."
+        )

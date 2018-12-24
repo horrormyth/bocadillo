@@ -4,7 +4,7 @@ from contextlib import contextmanager
 import pytest
 
 from bocadillo import API, Middleware
-from bocadillo.exceptions import HTTPError
+from bocadillo.exceptions import HTTPError, ShouldBeAsync
 
 
 @contextmanager
@@ -83,16 +83,20 @@ def test_callbacks_are_called_if_method_not_allowed(api: API):
         assert response.status_code == 405
 
 
-def test_callbacks_can_be_sync(api: API):
-    with build_middleware(sync=True) as middleware:
-        api.add_middleware(middleware)
+def test_before_dispatch_must_be_async():
+    with pytest.raises(ShouldBeAsync):
 
-        @api.route("/")
-        async def index(req, res):
-            pass
+        class MyMiddleware(Middleware):
+            def before_dispatch(self, req):
+                pass
 
-        response = api.client.get("/")
-        assert response.status_code == 200
+
+def test_after_dispatch_must_be_async():
+    with pytest.raises(ShouldBeAsync):
+
+        class MyMiddleware(Middleware):
+            def after_dispatch(self, req, res):
+                pass
 
 
 @pytest.mark.parametrize("when", ["before", "after"])
