@@ -23,17 +23,7 @@ async def retrieve_post(req, res, slug: str):
 
 ## Synchronous views
 
-While Bocadillo is asynchronous at its core, you can also use plain Python functions to define synchronous views:
-
-```python
-def index(req, res):
-    res.html = '<h1>My website</h1>'
-```
-
-**Note**: it is generally more
-efficient to use asynchronous views rather than synchronous ones.
-This is because, when given a synchronous view, Bocadillo needs to perform
-a sync-to-async conversion, which might add extra overhead.
+Synchronous views are not supported since Bocadillo v0.8.0. All views must now be `async`, otherwise an exception is raised upon app initialisation.
 
 ## Class-based views
 
@@ -53,7 +43,7 @@ class Index:
     async def get(self, req, res):
         res.text = 'Classes, oh my!'
        
-    def post(self, req, res):
+    async def post(self, req, res):
         res.text = 'Roger that'
 ```
 

@@ -178,14 +178,14 @@ You are encouraged to provide annotations for each and every function and method
 Do:
 
 ```python
-def add(x: int, y: int) -> int:
+async def add(x: int, y: int) -> int:
     return x + y
 ```
 
 Don't:
 
 ```
-def add(x, y):
+async defadd(x, y):
     return x + y
 ```
 

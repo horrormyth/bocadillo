@@ -193,7 +193,7 @@ For other parameters, see `API.template()`.
 
 ## before
 ```python
-API.before(self, hook_function: Callable[[starlette.requests.Request, bocadillo.response.Response, dict], Coroutine], *args, **kwargs)
+API.before(self, hook_function: Callable[[starlette.requests.Request, bocadillo.response.Response, dict], Awaitable[NoneType]], *args, **kwargs)
 ```
 Register a before hook on a route.
 
@@ -209,7 +209,7 @@ __Parameters__
 
 ## after
 ```python
-API.after(self, hook_function: Callable[[starlette.requests.Request, bocadillo.response.Response, dict], Coroutine], *args, **kwargs)
+API.after(self, hook_function: Callable[[starlette.requests.Request, bocadillo.response.Response, dict], Awaitable[NoneType]], *args, **kwargs)
 ```
 Register an after hook on a route.
 
@@ -236,7 +236,7 @@ __Parameters__
 
 ## add_error_handler
 ```python
-API.add_error_handler(self, exception_cls: Type[Exception], handler: Callable[[starlette.requests.Request, bocadillo.response.Response, Exception], NoneType])
+API.add_error_handler(self, exception_cls: Type[Exception], handler: Callable[[starlette.requests.Request, bocadillo.response.Response, Exception], Awaitable[NoneType]])
 ```
 Register a new error handler.
 
@@ -261,7 +261,7 @@ __Example__
 >>> import bocadillo
 >>> api = bocadillo.API()
 >>> @api.error_handler(KeyError)
-... def on_key_error(req, res, exc):
+... async def on_key_error(req, res, exc):
 ...     pass  # perhaps set res.content and res.status_code
 ```
 
@@ -349,7 +349,7 @@ __Returns__
 
 ## run
 ```python
-API.run(self, host: str = None, port: int = None, debug: bool = False, log_level: str = 'info')
+API.run(self, host: str = None, port: int = None, debug: bool = False, log_level: str = 'info', _run: Callable = <function run at 0x10974f620>)
 ```
 Serve the application using [uvicorn](https://www.uvicorn.org).
 

@@ -49,7 +49,7 @@ from bocadillo import API, Middleware
 
 class CSPMiddleware(Middleware):
 
-    def after_dispatch(self, req, res):
+    async def after_dispatch(self, req, res):
         # Only load scripts from the origin where the response
         # is served.
         res.headers["content-security-policy"] = "default-src 'self'"

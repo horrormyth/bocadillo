@@ -10,7 +10,7 @@ For example, let's say we want to build an API that sends YAML data. First, inst
 import bocadillo
 import yaml
 
-def handle_yaml(value: dict) -> str:
+async def handle_yaml(value: dict) -> str:
     return yaml.dump(value)
 
 api = bocadillo.API()

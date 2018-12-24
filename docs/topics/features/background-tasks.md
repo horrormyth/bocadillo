@@ -31,7 +31,7 @@ from asyncio import sleep
 @api.route('/orders', methods=['post'])
 async def create_order(req, res):
     @res.background
-    def send_confirmation():
+    async def send_confirmation():
         # TODO: send an email here
         await sleep(1)
 

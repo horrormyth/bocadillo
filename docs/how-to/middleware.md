@@ -59,7 +59,7 @@ class PrintUrlMiddleware:
     def __init__(self, api):
         self.api = api
 
-    def __call__(self, scope: dict):
+    async def __call__(self, scope: dict):
         if scope['type'] == 'http':
             # TODO: do something based on scope
             pass

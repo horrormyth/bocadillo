@@ -44,13 +44,6 @@ async def post_detail(req, res):
     res.html = await api.template('index.html', title='Hello, Bocadillo!')
 ```
 
-- In synchronous views, use `api.template_sync()` instead:
-
-```python
-def post_detail(req, res):
-    res.html = api.template_sync('index.html', title='Hello, Bocadillo!')
-```
-
 - Context variables can also be given as a dictionary:
 
 ```python

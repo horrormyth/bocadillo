@@ -52,7 +52,7 @@ As an example, consider the following route:
 from bocadillo.exceptions import HTTPError
 
 @api.route('/fail/{status_code:d}')
-def fail(req, res, status_code: int):
+async def fail(req, res, status_code: int):
     raise HTTPError(status_code)
 ```
 
@@ -84,7 +84,7 @@ To customize this behavior, you can override the default handler for `HTTPError`
 from bocadillo.exceptions import HTTPError
 
 @api.error_handler(HTTPError)
-def error_to_media(req, res, exc: HTTPError):
+async def error_to_media(req, res, exc: HTTPError):
     res.status = exc.status_code
     res.media = {
         "error": exc.status_phrase,
@@ -105,7 +105,7 @@ More generally, you can customize error handling for *any exception* (even built
 A non-decorator syntax is also available:
 
 ```python
-def on_attribute_error(req, res, exc: AttributeError):
+async def on_attribute_error(req, res, exc: AttributeError):
     res.status = 500
     res.media = {'error': {'attribute_not_found': exc.args[0]}}
 
