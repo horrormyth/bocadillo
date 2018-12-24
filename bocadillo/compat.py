@@ -38,6 +38,18 @@ def camel_to_snake(name: str) -> str:
 
 
 def check_async(func: Callable):
+    """Check that a callable is asynchronous.
+
+    Parameters
+    ----------
+    func : callable
+        A function or class instance.
+
+    Raises
+    ------
+    ShouldBeAsync :
+        If `func` (or its `__call__()` method) is not a coroutine function.
+    """
     if iscoroutinefunction(func):
         return
     elif hasattr(func, "__call__") and iscoroutinefunction(func.__call__):
