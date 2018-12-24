@@ -1,6 +1,6 @@
 """The Bocadillo API class."""
 import os
-from functools import partial
+from functools import wraps
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, Callable
 
 from starlette.middleware.cors import CORSMiddleware
@@ -14,16 +14,13 @@ from uvicorn.reloaders.statreload import StatReload
 
 from .compat import check_async
 from .cors import DEFAULT_CORS_CONFIG
-from .error_handlers import (
-    ErrorHandler,
-    convert_exception_to_response,
-    error_to_text,
-)
+from .error_handlers import ErrorHandler, error_to_text
 from .events import EventsMixin
 from .exceptions import HTTPError
 from .hooks import HooksMixin
 from .media import Media
 from .meta import APIMeta
+from .middleware import Dispatcher
 from .recipes import RecipeBase
 from .redirection import Redirection
 from .request import Request
@@ -379,13 +376,24 @@ class API(
         app = self._asgi_middleware_chain(app)
         return app(scope)
 
+    def _convert_exception_to_response(
+        self, dispatch: Dispatcher
+    ) -> Dispatcher:
+        """Wrap call to `dispatch()` to always return an HTTP response."""
+
+        @wraps(dispatch)
+        async def inner(req: Request) -> Response:
+            try:
+                res = await dispatch(req)
+            except Exception as exc:
+                res = Response(req, media=self._media)
+                await self._handle_exception(req, res, exc)
+            return res
+
+        return inner
+
     async def _get_response(self, req: Request) -> Response:
-        error_handler = self._handle_exception
-        convert = partial(
-            convert_exception_to_response,
-            error_handler=error_handler,
-            media=self._media,
-        )
+        convert = self._convert_exception_to_response
         dispatch = convert(self.dispatch)
         for cls, kwargs in self._middleware:
             middleware = cls(dispatch, **kwargs)

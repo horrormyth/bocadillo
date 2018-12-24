@@ -24,20 +24,3 @@ async def error_to_text(req, res, exc: HTTPError):
 
 
 ErrorHandler = Callable[[Request, Response, Exception], Awaitable[None]]
-
-
-def convert_exception_to_response(
-    dispatch, error_handler: ErrorHandler, **kwargs
-):
-    """Wrap call to `dispatch()` to always return an HTTP response."""
-
-    @wraps(dispatch)
-    async def inner(req: Request) -> Response:
-        try:
-            res = await dispatch(req)
-        except Exception as exc:
-            res = Response(req, **kwargs)
-            await error_handler(req, res, exc)
-        return res
-
-    return inner
