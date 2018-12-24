@@ -6,7 +6,7 @@ features:
 - title: Simple and productive
   details: A minimal setup and carefully chosen included batteries help you solve common (and more advanced) problems in no time. 
 - title: Async-first
-  details: Fully embrace modern Python asynchronous programming capabilities!
+  details: Fully embrace asynchronous programming to build next-generation web apps and services.
 - title: Performant
   details: Built on Starlette and Uvicorn, the lightning-fast Python ASGI toolkit and server.
 footer: MIT Licensed | Copyright © 2018-present Florimond Manca
