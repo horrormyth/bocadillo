@@ -34,9 +34,9 @@ In simple words, this means that Bocadillo's server can **release the CPU during
 
 You may not be familiar with asynchronous programming in Python, or may not need to use it in your project — **that's perfectly fine!**
 
-Indeed, while Bocadillo is async-first, **writing asynchronous code is entirely optional**. You can still write regular synchronous code like you've always done, if you prefer so; Bocadillo will still understand you.
+However, note that **Bocadillo requires that you write asynchronous functions for most things** — e.g. views, hooks, error handlers and middleware. This decision was made for the sake of performance and API simplicity.
 
-However, be sure that Bocadillo has everything you need if you decide to embrace an asynchronous style of programming.
+In simple words: **when in doubt, use `async def`.**
 
 ::: tip
 As an introduction to asynchronous programming in Python, I strongly recommend you watch Miguel Grinberg's excellent talk [Asynchronous Python for the Complete Beginner](https://www.youtube.com/watch?v=iG6fr81xHKA) from PyCon 2017.
