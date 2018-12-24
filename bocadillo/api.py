@@ -12,8 +12,13 @@ from starlette.testclient import TestClient
 from uvicorn.main import get_logger, run
 from uvicorn.reloaders.statreload import StatReload
 
+from .compat import check_async
 from .cors import DEFAULT_CORS_CONFIG
-from .error_handlers import ErrorHandler, convert_exception_to_response
+from .error_handlers import (
+    ErrorHandler,
+    convert_exception_to_response,
+    error_to_text,
+)
 from .events import EventsMixin
 from .exceptions import HTTPError
 from .hooks import HooksMixin
@@ -107,6 +112,7 @@ class API(
         super().__init__(templates_dir=templates_dir)
 
         self._error_handlers = []
+        self.add_error_handler(HTTPError, error_to_text)
 
         self._extra_apps: Dict[str, Any] = {}
 
@@ -198,6 +204,7 @@ class API(
             `exception_cls` is caught.
             Should accept a `req`, a `res` and an `exc`.
         """
+        check_async(handler)
         self._error_handlers.insert(0, (exception_cls, handler))
 
     def error_handler(self, exception_cls: Type[Exception]):
@@ -208,7 +215,7 @@ class API(
         >>> import bocadillo
         >>> api = bocadillo.API()
         >>> @api.error_handler(KeyError)
-        ... def on_key_error(req, res, exc):
+        ... async def on_key_error(req, res, exc):
         ...     pass  # perhaps set res.content and res.status_code
         ```
         """
@@ -227,18 +234,20 @@ class API(
                 return handler
         return None
 
-    def _handle_exception(
+    async def _handle_exception(
         self, req: Request, res: Response, exception: Exception
     ) -> None:
         """Handle an exception raised during dispatch.
 
-        If no handler was registered for the exception, it is raised.
+        If no handler was registered for the exception, a generic
+        500 error response is returned.
         """
         handler = self._find_handler(exception.__class__)
-        if handler is None:
-            raise exception from None
 
-        handler(req, res, exception)
+        if handler is None:
+            return await self._handle_exception(req, res, HTTPError(500))
+
+        await handler(req, res, exception)
         if res.status_code is None:
             res.status_code = 500
 
@@ -323,7 +332,7 @@ class API(
                 res = redirection.response
 
         except Exception as e:
-            self._handle_exception(req, res, e)
+            await self._handle_exception(req, res, e)
 
         return res
 
@@ -371,7 +380,7 @@ class API(
         return app(scope)
 
     async def _get_response(self, req: Request) -> Response:
-        error_handler = self._find_handler(HTTPError)
+        error_handler = self._handle_exception
         convert = partial(
             convert_exception_to_response,
             error_handler=error_handler,

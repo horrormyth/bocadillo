@@ -105,8 +105,8 @@ def test_errors_raised_in_callback_return_500_error(api: API, when):
         pass
 
     @api.error_handler(CustomError)
-    def handle_error(req, res, exception):
-        pass  # mute exception
+    async def handle_error(req, res, exception):
+        res.text = "muted!"
 
     class MiddlewareWithErrors(Middleware):
         async def before_dispatch(self, req):
@@ -125,11 +125,12 @@ def test_errors_raised_in_callback_return_500_error(api: API, when):
 
     response = api.client.get("/")
     assert response.status_code == 500
+    assert response.text == "muted!"
 
 
 def test_middleware_uses_registered_http_error_handler(api: API):
     @api.error_handler(HTTPError)
-    def custom(req, res, exc: HTTPError):
+    async def custom(req, res, exc: HTTPError):
         res.status_code = exc.status_code
         res.text = "Foo"
 

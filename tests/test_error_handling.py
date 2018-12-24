@@ -1,7 +1,7 @@
 import pytest
 
 from bocadillo import API
-from bocadillo.exceptions import HTTPError
+from bocadillo.exceptions import HTTPError, ShouldBeAsync
 from bocadillo.error_handlers import (
     error_to_media,
     error_to_text,
@@ -43,11 +43,10 @@ def test_if_http_error_is_raised_then_automatic_response_is_sent(
     "exception_cls", [KeyError, ValueError, AttributeError]
 )
 def test_custom_error_handler(api: API, exception_cls):
-
     called = False
 
     @api.error_handler(KeyError)
-    def on_key_error(req, res, exc):
+    async def on_key_error(req, res, exc):
         nonlocal called
         res.text = "Oops!"
         called = True
@@ -67,13 +66,21 @@ def test_custom_error_handler(api: API, exception_cls):
         assert not called
 
 
+def test_error_handlers_must_be_async(api: API):
+    def handler(req, res, exc):
+        pass
+
+    with pytest.raises(ShouldBeAsync):
+        api.add_error_handler(KeyError, handler)
+
+
 @pytest.mark.parametrize(
     "handler, check_response",
     [
         (error_to_html, lambda res: res.text == "<h1>403 Forbidden</h1>"),
         (
             error_to_media,
-            lambda res: res.json() == {"error": "Forbidden", "status": 403},
+            lambda res: res.json() == {"error": "403 Forbidden", "status": 403},
         ),
         (error_to_text, lambda res: res.text == "403 Forbidden"),
     ],
