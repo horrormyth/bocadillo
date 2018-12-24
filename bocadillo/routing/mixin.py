@@ -48,7 +48,7 @@ class RoutingMixin:
         >>> import bocadillo
         >>> api = bocadillo.API()
         >>> @api.route("/greet/{person}")
-        ... def greet(req, res, person: str):
+        ... async def greet(req, res, person: str):
         ...     pass
         ```
         """
