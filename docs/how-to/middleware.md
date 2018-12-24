@@ -8,7 +8,7 @@ This feature is **experimental**; the middleware API may be subject to changes.
 
 ## Regular middleware
 
-Regular middleware (or just *middleware*) is the standard, higher-level API for middleware in Bocadillo. They provide two hooks, namely `before_dispatch()` and `after_dispatch()`, that are called respectively before and after a request is dispatched and a response is obtained.
+Regular middleware (or just *middleware*) is the standard, higher-level API for middleware in Bocadillo. They provide two async hooks, namely `before_dispatch()` and `after_dispatch()`, that are called respectively before and after a request is dispatched and a response is obtained.
 
 To write a middleware, create a subclass of `bocadillo.Middleware` and implement `.before_dispatch()` and `.after_dispatch()` as seems fit.
 
@@ -25,10 +25,6 @@ class PrintUrlMiddleware(bocadillo.Middleware):
     async def after_dispatch(self, req, res):
         print(res.url)
 ```
-
-::: tip
-The `.before_dispatch()` and `.after_dispatch()` can also be plain, non-`async` Python functions.
-:::
 
 You may also override `__init__()` to perform extra initialisation logic. Be sure to keep the following signature: `(self, dispatch, **kwargs) -> None` and to call `super()`.
 
